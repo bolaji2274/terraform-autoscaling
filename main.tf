@@ -16,6 +16,35 @@ provider "aws" {
 #     Name = "Server"
 #   }
 # }
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+resource "aws_security_group" "alb" {
+  name = "alb"
+
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+      from_port = 0
+      to_port = 0
+      protocol = "-1"
+      cidr_blocks = [ "0.0.0.0/0" ]
+
+    }
+}
 
 resource "aws_launch_configuration" "web_server" {
   image_id = "ami-0261755bbcb8c4a84"
@@ -106,35 +135,9 @@ resource "aws_lb_listener_rule" "asg" {
   }
 }
 
-resource "aws_security_group" "alb" {
-  name = "alb"
 
-  ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
-  egress {
-      from_port = 0
-      to_port = 0
-      protocol = "-1"
-      cidr_blocks = [ "0.0.0.0/0" ]
 
-    }
-}
-
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
 resource "aws_security_group" "server_sg" {
   # vpc_id = aws.vpc_id
   name = "server-security"
