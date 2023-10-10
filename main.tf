@@ -90,6 +90,22 @@ resource "aws_lb_target_group" "asg" {
   }
 }
 
+resource "aws_lb_listener_rule" "asg" {
+  listener_arn = aws_lb_listener.http.arn
+  priority = 100
+
+  condition {
+    path_pattern {
+      values = ["*"]
+    }
+  }
+
+  action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.asg.arn
+  }
+}
+
 resource "aws_security_group" "alb" {
   name = "alb"
 
@@ -135,6 +151,11 @@ variable "server_port" {
   description = "The port number for the server"
   # default = 8080
   type = number
+}
+
+output "alb_dns_name" {
+  value = aws_lb.web_server.dns_name
+  description = "The domain name of the load balancer"
 }
 
 # output "public_ip" {
